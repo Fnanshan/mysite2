@@ -48,3 +48,38 @@ mod wsgi包实现了一个简单易用的Apache模块，它可以承载任何支
 
 **为什么Managers 只能通过模型类访问，而不是通过模型实例？**  
 因为一个模型类是一张表，模型类执行“表级”操作，模型实例执行“行级”操作。目的是强制分离 “表级” 操作和 “行级” 操作。
+
+#### 缓存和 QuerySet  
+首先，Django是惰性的。创建 QuerySet 并不会引发任何数据库活动。Django 只会在 QuerySet 被 计算 时执行查询操作  
+其次，新创建的 QuerySet 缓存是空的。一旦要计算 QuerySet 的值，就会执行查询操作。一般来说， QuerySet 的结果直到你 “要使用” 时才会从数据库中拿出。  
+例子如下：  
+```bash
+>>> q = Entry.objects.filter(headline__startswith="What")
+>>> q = q.filter(pub_date__lte=datetime.date.today())
+>>> q = q.exclude(body_text__icontains="food")
+>>> print(q)
+# 只有在print(q)的时候才计算QuerySet的值，前三次仅仅是创建QUerySet。
+```
+[参考链接: When QuerySets are evaluated](https://docs.djangoproject.com/zh-hans/2.2/ref/models/querysets/#when-querysets-are-evaluated)  
+最后 ，我们再来看一下QuerySet的缓存行为在实际应用中。QuerySet缓存存在的目的是：尽量减少数据库访问。通常是简单地保存 QuerySet 并复用多次，而不是需要用一个才去创建一个个的QuerySet。  
+
+##### 我的问题  
+如何让 QuerySet 实时更新数据库数据？
+```python
+>>> queryset = Entry.objects.all()
+>>> queryset
+Output：<QuerySet [<Entry: 今天热吗？>, <Entry: 昨天我们探讨MySQL优化的问题>]>
+# insert or update or delete
+>>> from django.utils import timezone
+>>> q = Entry(
+		headline="后天我们探讨MySQL优化的问题", 
+		body_text='非常好', 
+		pub_date=timezone.now(), 
+		mod_date=timezone.now(), 
+		n_comments=1, 
+		n_pingbacks=1, 
+		rating=1, 
+		blog_id=1)
+>>> queryset
+Output: <QuerySet [<Entry: 今天热吗？>, <Entry: 昨天我们探讨MySQL优化的问题>]>
+```
