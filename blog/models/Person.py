@@ -1,6 +1,6 @@
 # coding=utf-8
 # Create your models here.
-from django.db import models
+from django.db import models, connection
 
 
 class PersonQuerySet(models.QuerySet):
@@ -11,6 +11,9 @@ class PersonQuerySet(models.QuerySet):
     # 相反，如果我用Manager调用自定义的QuerySet，则Manager可以调用_开头的方法，因为Manager调用QuerySet，由QuerySet调用私有方法。
     def _private_editors(self):
         return self.filter(role='E')
+
+    def get_firstname(self):
+        return self.raw('select id, first_name from blog_person')
 
 
 class PersonManager(models.Manager):
@@ -23,6 +26,9 @@ class PersonManager(models.Manager):
     def editors(self):
         return self.get_queryset()._private_editors()
 
+    def get_firstname(self):
+        return self.get_queryset().get_firstname()
+
 
 class Person(models.Model):
     first_name = models.CharField(max_length=50)
@@ -33,4 +39,4 @@ class Person(models.Model):
     # people = PersonQuerySet.as_manager()
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return self.first_name + ' ' + self.last_name + ' ' + self.role
