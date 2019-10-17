@@ -125,15 +125,27 @@ USE_I18N = True              # 语言
 
 USE_L10N = True              # 数据和时间格式
 
-USE_TZ = True                # 启用系统默认时区，即America/Chicago。此时TIME_ZONE不管有没有设置都不起作用。
-# USE_TZ = False             # 若TIME_ZONE = None，Django会使用默认的America/Chicago时间
+# USE_TZ = True                # 启用系统默认时区，即America/Chicago。此时TIME_ZONE不管有没有设置都不起作用。
+USE_TZ = False             # 若TIME_ZONE = None，Django会使用默认的America/Chicago时间
 '''
 TIME_ZONE = 'Asia/Shanghai' (设置为其它时区)，则要具体的程序运行环境。如果是Windows系统，则TIME_ZONE设置是没用的，Django会使用本机的所使用的时区。如果为Linux，则使用TIME_ZONE设置的时区
 '''
-USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# 简单缓存会话存储
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# 持久化缓存数据。直写式缓存——每次写入缓存的数据也会被写入到数据库
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+# 基于文件的会话
+# SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+# 基于cookie的会话
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
+# 防止通过 JavaScript 访问存储数据
+SESSION_COOKIE_HTTPONLY = True
+

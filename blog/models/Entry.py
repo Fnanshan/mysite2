@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.db import models
+from django.urls import reverse
 
 from blog.models.Author import Author
 from blog.models.Blog import Blog
@@ -18,3 +19,6 @@ class Entry(models.Model):
 
     def __str__(self):
         return self.headline
+
+    def get_absolute_url(self):
+        return reverse('')
