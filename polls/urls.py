@@ -12,7 +12,8 @@ urlpatterns = [
     path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
     path('<int:question_id>/vote/', views.vote, name='vote'),
     path('upload/', views.upload_file, name='upload_file'),
-    path('form/', views.ContactView.as_view(), name='form'),
+    path('form/', views.get_name, name='form'),
+    path('formview/', views.ContactView.as_view(), name='formview'),
     path('product/', views.ProductListView.as_view(), name='productList'),
     path('create/', views.QuestionCreate.as_view(), name='QuestionCreate'),
     path('update/<int:pk>/', views.QuestionUpdate.as_view(), name='QuestionUpdate'),
@@ -21,6 +22,8 @@ urlpatterns = [
     path('archive/',
          ArchiveIndexView.as_view(model=Question, date_field="pub_date"),
          name="question_archive"),
+    # 学习formset
+    path('manage_article/', views.manage_article, name='manage_article'),
 ]
 
 # urlpatterns = [

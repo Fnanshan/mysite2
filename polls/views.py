@@ -1,13 +1,14 @@
-from django.http import HttpResponseRedirect, request
+import datetime
+
+from django.core.mail import send_mail
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse, reverse_lazy
-from django.utils import timezone
+from django.urls import reverse
 from django.views import generic
 # from django.views.decorators.http import require_http_methods
 from django.views.generic import FormView, CreateView, UpdateView, DeleteView
-
 from .models import Question, Choice
-from .forms import UploadFileForm, ContactForm, ProductForm
+from .forms import UploadFileForm, ContactForm, ProductForm, NameForm, ArticleFormSet
 
 
 class IndexView(generic.ListView):
@@ -84,24 +85,55 @@ def upload_file(request):
     return render(request, 'polls/upload.html', {'form': form})
 
 
+
+def get_name(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = NameForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponseRedirect('/thanks/')
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = NameForm()
+
+    return render(request, 'polls/contact.html', {'form': form})
+
+
 '''学习FormView代码'''
-
-
 class ContactView(FormView):
     template_name = 'polls/contact.html'
     form_class = ContactForm
     success_url = '/thanks/'
 
     def form_valid(self, form):
+        # 示例1
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        form.send_email()
+        # form.send_email()
+        # return super().form_valid(form)
+
+        # 示例2
+        subject = form.cleaned_data['subject']
+        message = form.cleaned_data['message']
+        sender = form.cleaned_data['sender']
+        cc_myself = form.cleaned_data['cc_myself']
+
+        recipients = ['info@example.com']
+        if cc_myself:
+            recipients.append(sender)
+        print('recipients :', recipients)
+        # send_mail(subject, message, sender, recipients)
+        # return HttpResponseRedirect('/thanks/')
         return super().form_valid(form)
 
 
 '''新建Forms文件,然后到views.py下编写业务逻辑内容，并在urls.py下进行路由配置;接着新建一个template'''
-
-
 class ProductListView(FormView):
     template_name = 'polls/product.html'
     form_class = ProductForm
@@ -115,8 +147,6 @@ class ProductListView(FormView):
 
 
 '''学习CreateView'''
-
-
 class QuestionCreate(CreateView):
     model = Question
     fields = ['question_text', 'pub_date']
@@ -124,6 +154,7 @@ class QuestionCreate(CreateView):
     success_url = '/polls/'
 
 
+'''学习UpdateView'''
 class QuestionUpdate(UpdateView):
     model = Question
     fields = ['question_text', 'pub_date']
@@ -141,8 +172,26 @@ class QuestionUpdate(UpdateView):
         return kwargs
 
 
+'''学习DeleteView'''
 class QuestionDelete(DeleteView):
     model = Question
     fields = ['question_text', 'pub_date']
     template_name = 'polls/author_confirm_delete.html'
     success_url = '/polls/'
+
+
+'''学习formset'''
+def manage_article(request):
+    if request.method == 'POST':
+        formset = ArticleFormSet(request.POST)
+        if formset.is_valid():
+            # do something with the formset.cleaned_data
+            return HttpResponseRedirect('/thanks/')
+    else:
+        formset = ArticleFormSet()
+        # formset = ArticleFormSet(initial=[
+        #     {'title': 'Django is now open source',
+        #      'pub_date': datetime.date.today(),}
+        # ])
+        #如果想传入初始数据可设置initial = [{'name':'python','pub_date':'北京出版社'}]
+    return render(request, 'polls/manage_article.html', {'formset': formset})
